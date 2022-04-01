@@ -71,11 +71,11 @@ def getGrid(grid, latList, longList):
     codeMap = {0:'A', 1:'B', 2:'C', 3:'D'}
     grid_info_df = pd.DataFrame(columns=['id', 'latCode','longCode', 'x1', 'y1', 'x2', 'y2'])
 
-    for item in grid["features"]:
-        properties = item["properties"]
-        top_l_point = item["geometry"]["coordinates"][0][0]
-        bottom_r_point = item["geometry"]["coordinates"][0][2]
-        id = properties["id"]
+    for item in grid['features']:
+        properties = item['properties']
+        top_l_point = item['geometry']['coordinates'][0][0]
+        bottom_r_point = item['geometry']['coordinates'][0][2]
+        id = properties['id']
         x1 = top_l_point[0]
         y1 = top_l_point[1]
         x2 = bottom_r_point[0]
@@ -95,10 +95,13 @@ def getGrid(grid, latList, longList):
 
     grid_info_df = grid_info_df.astype({'id': 'int64', 'longCode':'int64'})
     grid_info_df = grid_info_df.convert_dtypes()
-    print(grid_info_df.info())
-    grid_info_df["cell"] = grid_info_df["latCode"] + grid_info_df["longCode"].astype(str)
-    grid_info_df = grid_info_df.set_index("cell")
-    grid_info_df = grid_info_df.drop(["id", "latCode", "longCode"], axis=1)
+    #print(grid_info_df.info())
+    grid_info_df["cell"] = grid_info_df['latCode'] + grid_info_df['longCode'].astype(str)
+    grid_info_df = grid_info_df.set_index('cell')
+    grid_info_df = grid_info_df.drop(['id', 'latCode' ,'longCode'], axis=1)
+    #grid_info_df['area_co'] = grid_info_df.values.tolist()
+    #grid_info_df = grid_info_df.drop(['x1', 'y1', 'x2', 'y2'], axis=1)
+    grid_info_df = grid_info_df.transpose()
 
     return grid_info_df
 
@@ -150,7 +153,8 @@ def process_twitts (twitts):
 process_twitts(twitts_dict)
 
 #t['combined']= t.values.tolist()
-dictionaryObject = df.to_dict(orient='index')  #index 0-15
+
+dictionaryObject = df.to_dict()  #index 0-15
 print(dictionaryObject)
 
 def cell_allocator(x, y, grid):
@@ -162,12 +166,26 @@ def cell_allocator(x, y, grid):
     :param grid: grid dataframe contains 16 grids' information
     :return: cell code eg. A1, C4, D2
     """
-    dictionaryGrid = grid.to_dict(orient='index')  #{'C4': {'x1': 151.2155, 'y1': -33.85412, 'x2': 151.3655, 'y2': -34.00412}...}
+    #grid  = grid.reset_index(drop = True, inplace = True)
+    dictionaryGrid = grid.to_dict()  #{'C4': {'x1': 151.2155, 'y1': -33.85412, 'x2': 151.3655, 'y2': -34.00412}...}
     #situation 1: not on any line
+    cells = []
+    for cell, coordinates in dictionaryGrid.items():
+        if (coordinates["x1"] <= x <= coordinates["x2"]) and (coordinates["y2"] <= y <= coordinates["y1"]):
+            if (x != coordinates["x1"]) and (y != coordinates["y2"]):
+                return cell
+        cells.append(cell)
+
+    """
+    ????
+    """
+    if len(cells) == 0:
+        return None
+    else:
+        return cells[0]
 
 
     #return cell
-    pass
 
 
 
