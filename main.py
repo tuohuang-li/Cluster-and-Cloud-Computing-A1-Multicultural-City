@@ -145,12 +145,14 @@ def cell_allocator(x, y, grid):
         return None
     #case: top & down cells or left & right cells
     if len(cells) == 2:
+        #top & down
         if dictionaryGrid[cells[0]]['y1'] == dictionaryGrid[cells[1]]['y1']:
             if dictionaryGrid[cells[0]]['x1'] < dictionaryGrid[cells[1]]['x1']:
                 return cells[0]
             else:
 
                 return cells[1]
+        #left & right
         elif dictionaryGrid[cells[0]]['x1'] == dictionaryGrid[cells[1]]['x1']:
             if dictionaryGrid[cells[0]]['y1'] < dictionaryGrid[cells[1]]['y1']:
 
@@ -160,7 +162,7 @@ def cell_allocator(x, y, grid):
     #case: point shared by 4 cells
     else:
         print(cells)
-        return cells[-1]
+        return cells[-2]
 
 #print(cell_allocator(150.9155, -33.85412,df))
 """
@@ -205,9 +207,10 @@ def process_twitts (twitts):
 
     return twitts_info_df
 
+start_time = time.time()
 process_twitts(twitts_dict)
-
-
+end_time = time.time()
+print("total running time is: ", (end_time - start_time))
 #t['combined']= t.values.tolist()
 
 
