@@ -1,7 +1,9 @@
 import json
 import os
 import pandas as pd
-import numpy as np
+import time
+#from mpi4py import MPI
+from iso639 import languages
 
 
 os.chdir(r'C:\Users\Tuohuang\Documents\COMP90024-Cluster and cloud computing\A1\a1-code')
@@ -90,7 +92,7 @@ def getGrid(grid, latList, longList):
                 longCode = j+1
 
         polygon_df = pd.DataFrame([[id, latCode, longCode, x1, y1, x2, y2]],
-                                  columns=['id', 'latCode' ,'longCode', 'x1', 'y1', 'x2', 'y2'], dtype='float')
+                                  columns=['id', 'latCode', 'longCode', 'x1', 'y1', 'x2', 'y2'], dtype='float')
         grid_info_df = grid_info_df.append(polygon_df, ignore_index=True)
 
     grid_info_df = grid_info_df.astype({'id': 'int64', 'longCode':'int64'})
@@ -118,9 +120,6 @@ dictionaryObject = df.to_dict()  #index 0-15
 """
 Step 3: cell allocator
 """
-
-
-
 def cell_allocator(x, y, grid):
     """
     If a tweet occurs right on the border of two cells, keep left, keep down;
@@ -134,9 +133,6 @@ def cell_allocator(x, y, grid):
     dictionaryGrid = grid.to_dict()  #{'C4': {'x1': 151.2155, 'y1': -33.85412, 'x2': 151.3655, 'y2': -34.00412}...}
     #situation 1: not on any line
     cells = []
-
-    #print(dictionaryGrid)
-    #print(dictionaryGrid["C4"]['x1'])
 
     for cell, coordinates in dictionaryGrid.items():
         if (coordinates["x1"] <= x <= coordinates["x2"]) and (coordinates["y2"] <= y <= coordinates["y1"]):
@@ -181,12 +177,12 @@ def process_twitts (twitts):
     """
 
     # Define a dataframe
-    twitts_info_df = pd.DataFrame(columns=['lang_code', 'cell', 'x', 'y'])
+    twitts_info_df = pd.DataFrame(columns=['langCode', 'cell', 'x', 'y'])
     for item in twitts["rows"]:
         if item["doc"]["coordinates"] is not None:
             #print (item)
             #print (item["doc"]["coordinates"]["coordinates"])    # type: list
-            lang_code = item["doc"]["lang"]
+            langCode = item["doc"]["lang"]
             x = item["doc"]["coordinates"]["coordinates"][0]
             y = item["doc"]["coordinates"]["coordinates"][1]
             cell = cell_allocator(x, y, df)
@@ -194,31 +190,26 @@ def process_twitts (twitts):
             need a function to decide the "cell" of this twitter
             """
 
-            itemInfo_df = pd.DataFrame([[lang_code, cell, x, y]],
-                                      columns=['lang_code', 'cell', 'x', 'y'], dtype='float')
+            itemInfo_df = pd.DataFrame([[langCode, cell, x, y]],
+                                      columns=['langCode', 'cell', 'x', 'y'], dtype='float')
             twitts_info_df = twitts_info_df.append(itemInfo_df, ignore_index=True)
 
+    twitts_info_df['langName'] = twitts_info_df['langCode'].apply(lambda x: languages.get(alpha2=x).name)
     print(twitts_info_df)
+
+    #.size().reset_index(name='counts') this part helps return a result as a DataFrame (instead of a Series)
+    twitts_info_df = twitts_info_df.groupby(['cell','langName']).size().reset_index(name='counts')\
+                     .sort_values(['counts'],ascending=False)
+
+    print(twitts_info_df)
+
     return twitts_info_df
 
 process_twitts(twitts_dict)
 
+
 #t['combined']= t.values.tolist()
 
 
-
-
-
-class pair:
-    def __init__(self, key, value):
-        pass
-
-class grid:
-    def __init__(self,top_left,bottom_right):
-        pass
-
-    def isInGrid(input):
-        pass
-     # return Ture/False
 
 
