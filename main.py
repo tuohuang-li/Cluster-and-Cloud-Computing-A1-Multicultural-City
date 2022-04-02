@@ -179,7 +179,7 @@ def process_twitts (twitts):
     """
 
     # Define a dataframe
-    twitts_info_df = pd.DataFrame(columns=['langCode', 'cell', 'x', 'y'])
+    twitts_info_df = pd.DataFrame(columns=['langCode', 'cell', 'x', 'y', 'numberOfTwitts'])
     for item in twitts["rows"]:
         if item["doc"]["coordinates"] is not None:
             #print (item)
@@ -188,12 +188,13 @@ def process_twitts (twitts):
             x = item["doc"]["coordinates"]["coordinates"][0]
             y = item["doc"]["coordinates"]["coordinates"][1]
             cell = cell_allocator(x, y, df)
+            numberOfTwitts = 1
             """
             need a function to decide the "cell" of this twitter
             """
 
-            itemInfo_df = pd.DataFrame([[langCode, cell, x, y]],
-                                      columns=['langCode', 'cell', 'x', 'y'], dtype='float')
+            itemInfo_df = pd.DataFrame([[langCode, cell, x, y, numberOfTwitts]],
+                                      columns=['langCode', 'cell', 'x', 'y', 'numberOfTwitts'], dtype='float')
             twitts_info_df = twitts_info_df.append(itemInfo_df, ignore_index=True)
 
     twitts_info_df['langName'] = twitts_info_df['langCode'].apply(lambda x: languages.get(alpha2=x).name)
