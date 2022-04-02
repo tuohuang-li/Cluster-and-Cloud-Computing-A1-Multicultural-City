@@ -99,8 +99,6 @@ def getGrid(grid, latList, longList):
     grid_info_df["cell"] = grid_info_df['latCode'] + grid_info_df['longCode'].astype(str)
     grid_info_df = grid_info_df.set_index('cell')
     grid_info_df = grid_info_df.drop(['id', 'latCode' ,'longCode'], axis=1)
-    #grid_info_df['area_co'] = grid_info_df.values.tolist()
-    #grid_info_df = grid_info_df.drop(['x1', 'y1', 'x2', 'y2'], axis=1)
     grid_info_df = grid_info_df.transpose()
 
     return grid_info_df
@@ -141,10 +139,9 @@ def cell_allocator(x, y, grid):
     #print(dictionaryGrid["C4"]['x1'])
 
     for cell, coordinates in dictionaryGrid.items():
-        if (coordinates["x1"] < x < coordinates["x2"]) and (coordinates["y2"] < y < coordinates["y1"]):
-            return cell
-        elif (x == coordinates["x1"]) or (x == coordinates["x2"]) or \
-                (y == coordinates["y2"]) or (y == coordinates["y1"]):
+        if (coordinates["x1"] <= x <= coordinates["x2"]) and (coordinates["y2"] <= y <= coordinates["y1"]):
+            if (x != coordinates["x1"]) and (y != coordinates["y2"]):
+                return cell
             cells.append(cell)
 
     #case: outside all cells
@@ -154,8 +151,6 @@ def cell_allocator(x, y, grid):
     if len(cells) == 2:
         if dictionaryGrid[cells[0]]['y1'] == dictionaryGrid[cells[1]]['y1']:
             if dictionaryGrid[cells[0]]['x1'] < dictionaryGrid[cells[1]]['x1']:
-
-
                 return cells[0]
             else:
 
@@ -165,24 +160,18 @@ def cell_allocator(x, y, grid):
 
                 return cells[0]
             else:
-
                 return cells[1]
     #case: point shared by 4 cells
     else:
         print(cells)
         return cells[-1]
 
-    """
-    dealing with edge case
-    """
-    #type 1: x = x1/x2
-    #type 2: y = y1/y2
-    #type 3:
-
+#print(cell_allocator(150.9155, -33.85412,df))
 """
 Step 4: Read twitter file
 """
 twitts_dict = loadFile('smallTwitter.json')
+
 def process_twitts (twitts):
     """
     Write a loop iterate through all data and discard items without geo/coordinates information
