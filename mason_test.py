@@ -1,10 +1,9 @@
 from contextlib import nullcontext
 import json
-from re import A
 from iso639 import languages
 import pandas as pd
 import time
-
+from lang import languages
 
 def loadFile(file):
     with open(file, 'r', encoding="utf8") as f:
@@ -58,6 +57,13 @@ def loadFile(file):
 
 tinyTwitter = loadFile('smallTwitter.json')
 
+def get_languages(lan):
+  for i in languages:
+    if(i[0] == lan):
+      return i[1]
+  
+  return 'Unknown'
+
 # Generate results array to store manipulated data
 def generate_results_array():
   results = []
@@ -75,18 +81,42 @@ def getResult(tinyTwitter):
       area_code = getAreaCode(coordinates[0], coordinates[1], logi, lati)
       for result in results:
         if(result["cell"] == area_code):
+          language = get_languages(row["doc"]["lang"])
           result["total_tweets"] += 1
-          result[ "number_of_languages"] = len(result["languages"])
-          if (row["doc"]["lang"] in result["languages"]):
-            result["languages"][row["doc"]["lang"]] += 1
+          if (language in result["languages"]):
+            result["languages"][language] += 1
           else:
-            result["languages"][row["doc"]["lang"]] = 1
+            result["languages"][language] = 1
+          result[ "number_of_languages"] = len(result["languages"])
 
-  return results
+  final_result = []
+
+  for result in results:
+    if(result["total_tweets"] != 0):
+      newDictionary={}
+      sortedList=sorted(result["languages"].values())
+      i = 0
+      for sortedKey in sortedList:
+        for key, value in result["languages"].items():
+          if(i > 9):
+            break
+          i += 1
+          if value==sortedKey:
+              newDictionary[key]=value
+            
+      result["languages"] = newDictionary
+      final_result.append(result)
+    
+
+  return final_result
 
           
 start_time = time.time()
 results = getResult(tinyTwitter)
 end_time = time.time()
 print("total running time is: ", (end_time - start_time))
-print(results)
+def print_result():
+  print('cell', '#Total Tweets', '#Number of Languages Used')
+  for result in results:
+    print(result['cell'],'\t', result['total_tweets'], '\t\t', result['number_of_languages'] ,'\t', result['languages'])
+print_result()
