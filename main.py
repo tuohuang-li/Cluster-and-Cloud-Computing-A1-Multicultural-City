@@ -113,14 +113,80 @@ print(df)
 #print(list(df['x1']))
 
 
+dictionaryObject = df.to_dict()  #index 0-15
+#print(dictionaryObject)
+
 
 """
-Step 3: Read twitter file
+Step 3: cell allocator
 """
 
-twitts_dict = loadFile('tinyTwitter.json')
 
 
+def cell_allocator(x, y, grid):
+    """
+    If a tweet occurs right on the border of two cells, keep left, keep down;
+    If located on edge border, for example A1, then it can be regarded as being in cell A1.
+    :param x: longitude of twitter sent
+    :param y: latitude of twitter sent
+    :param grid: grid dataframe contains 16 grids' information
+    :return: cell code eg. A1, C4, D2
+    """
+    #grid  = grid.reset_index(drop = True, inplace = True)
+    dictionaryGrid = grid.to_dict()  #{'C4': {'x1': 151.2155, 'y1': -33.85412, 'x2': 151.3655, 'y2': -34.00412}...}
+    #situation 1: not on any line
+    cells = []
+
+    #print(dictionaryGrid)
+    #print(dictionaryGrid["C4"]['x1'])
+
+    for cell, coordinates in dictionaryGrid.items():
+        if (coordinates["x1"] < x < coordinates["x2"]) and (coordinates["y2"] < y < coordinates["y1"]):
+            return cell
+        elif (x == coordinates["x1"]) or (x == coordinates["x2"]) or \
+                (y == coordinates["y2"]) or (y == coordinates["y1"]):
+            cells.append(cell)
+
+    #case: outside all cells
+    if len(cells) == 0:
+        return None
+    #case: top & down cells or left & right cells
+    if len(cells) == 2:
+        if dictionaryGrid[cells[0]]['y1'] == dictionaryGrid[cells[1]]['y1']:
+            if dictionaryGrid[cells[0]]['x1'] < dictionaryGrid[cells[1]]['x1']:
+
+
+                return cells[0]
+            else:
+
+                return cells[1]
+        elif dictionaryGrid[cells[0]]['x1'] == dictionaryGrid[cells[1]]['x1']:
+            if dictionaryGrid[cells[0]]['y1'] < dictionaryGrid[cells[1]]['y1']:
+
+                return cells[0]
+            else:
+
+                return cells[1]
+    #case: point shared by 4 cells
+    else:
+        print(cells)
+        return cells[-1]
+
+    """
+    dealing with edge case
+    """
+    #type 1: x = x1/x2
+    #type 2: y = y1/y2
+    #type 3:
+
+
+
+    return cells
+
+"""
+Step 4: Read twitter file
+"""
+twitts_dict = loadFile('smallTwitter.json')
 def process_twitts (twitts):
     """
     Write a loop iterate through all data and discard items without geo/coordinates information
@@ -138,54 +204,23 @@ def process_twitts (twitts):
             lang_code = item["doc"]["lang"]
             x = item["doc"]["coordinates"]["coordinates"][0]
             y = item["doc"]["coordinates"]["coordinates"][1]
-            #cell =
+            cell = cell_allocator(x, y, df)
             """
             need a function to decide the "cell" of this twitter
             """
 
-            itemInfo_df = pd.DataFrame([[lang_code, x, y]],
-                                      columns=['lang_code', 'x', 'y'], dtype='float')
+            itemInfo_df = pd.DataFrame([[lang_code, cell, x, y]],
+                                      columns=['lang_code', 'cell', 'x', 'y'], dtype='float')
             twitts_info_df = twitts_info_df.append(itemInfo_df, ignore_index=True)
 
-    #print(twitts_info_df)
+    print(twitts_info_df)
     return twitts_info_df
 
 process_twitts(twitts_dict)
 
 #t['combined']= t.values.tolist()
 
-dictionaryObject = df.to_dict()  #index 0-15
-print(dictionaryObject)
 
-def cell_allocator(x, y, grid):
-    """
-    If a tweet occurs right on the border of two cells, keep left, keep down;
-    If located on edge border, for example A1, then it can be regarded as being in cell A1.
-    :param x: longitude of twitter sent
-    :param y: latitude of twitter sent
-    :param grid: grid dataframe contains 16 grids' information
-    :return: cell code eg. A1, C4, D2
-    """
-    #grid  = grid.reset_index(drop = True, inplace = True)
-    dictionaryGrid = grid.to_dict()  #{'C4': {'x1': 151.2155, 'y1': -33.85412, 'x2': 151.3655, 'y2': -34.00412}...}
-    #situation 1: not on any line
-    cells = []
-    for cell, coordinates in dictionaryGrid.items():
-        if (coordinates["x1"] <= x <= coordinates["x2"]) and (coordinates["y2"] <= y <= coordinates["y1"]):
-            if (x != coordinates["x1"]) and (y != coordinates["y2"]):
-                return cell
-        cells.append(cell)
-
-    """
-    ????
-    """
-    if len(cells) == 0:
-        return None
-    else:
-        return cells[0]
-
-
-    #return cell
 
 
 
