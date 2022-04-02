@@ -162,7 +162,7 @@ def cell_allocator(x, y, grid):
     #case: point shared by 4 cells
     else:
         print(cells)
-        return cells[-2]
+        return cells[-2] #??
 
 #print(cell_allocator(150.9155, -33.85412,df))
 """
