@@ -179,10 +179,6 @@ def cell_allocator(x, y, grid):
     #type 2: y = y1/y2
     #type 3:
 
-
-
-    return cells
-
 """
 Step 4: Read twitter file
 """
