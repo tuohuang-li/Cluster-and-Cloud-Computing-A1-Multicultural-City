@@ -1,16 +1,45 @@
-from contextlib import nullcontext
 import json
-from iso639 import languages
-import pandas as pd
 import time
 from lang import languages
+from mpi4py import MPI
 
-def loadFile(file):
+
+def chunkTwitter(flist, x):
+  list = []
+  for i in range(4):
+    list.append(flist[i::x])
+  return list
+   
+comm = MPI.COMM_WORLD
+comm_rank = comm.Get_rank()
+comm_size = comm.Get_size()
+
+
+file = 'bigTwitter.json'
+total_row = 0
+f_list = []
+def loadFile():
+    with open(file, 'r', encoding="utf8") as f:
+      i = 0
+      for item in f:
+        # if(i == 1):
+        #   total_row = json.loads('{' + item.strip()[:-1] + '}')["total_rows"]
+        if(i > 3):
+          if(item.strip()[-1] == ','):
+            row = json.loads(item.strip()[:-1])
+            if (row["doc"]["coordinates"] != None):
+              # row["doc"]["coordinates"]["coordinates"]
+              # row["doc"]["lang"]
+              f_list.append({"coordinates": row["doc"]["coordinates"]["coordinates"], "lang":row["doc"]["lang"] })
+        i += 1
+
+
+def loadFileGrid(file):
     with open(file, 'r', encoding="utf8") as f:
         gridData = json.load(f)
     return gridData
 
-sydGrid = loadFile('sydGrid-2.json')
+sydGrid = loadFileGrid('sydGrid.json')
 
 logiCode=['1', '2', '3', '4']
 latiCode = ['A', 'B', 'C', 'D']
@@ -50,12 +79,12 @@ def getAreaCode(x, y, logi, lati):
   return area['latiCode'] + area['logiCode']
 
 
-def loadFile(file):
-    with open(file, 'r', encoding="utf8") as f:
-        gridData = json.load(f)
-    return gridData
+# def loadFile(file):
+#     with open(file, 'r', encoding="utf8") as f:
+#         gridData = json.load(f)
+#     return gridData
 
-tinyTwitter = loadFile('smallTwitter.json')
+#tinyTwitter = loadFile('smallTwitter.json')
 
 def get_languages(lan):
   for i in languages:
@@ -73,21 +102,20 @@ def generate_results_array():
   return results
 
 # Processing tiny twitter
-def getResult(tinyTwitter):
+def getResult():
   results = generate_results_array()
-  for row in tinyTwitter["rows"]:
-    if(row["doc"]["coordinates"] != None):
-      coordinates = row["doc"]["coordinates"]["coordinates"]
-      area_code = getAreaCode(coordinates[0], coordinates[1], logi, lati)
-      for result in results:
-        if(result["cell"] == area_code):
-          language = get_languages(row["doc"]["lang"])
-          result["total_tweets"] += 1
-          if (language in result["languages"]):
-            result["languages"][language] += 1
-          else:
-            result["languages"][language] = 1
-          result[ "number_of_languages"] = len(result["languages"])
+  for row in f_list:
+    coordinates = row["coordinates"]
+    area_code = getAreaCode(coordinates[0], coordinates[1], logi, lati)
+    for result in results:
+      if(result["cell"] == area_code):
+        language = get_languages(row["lang"])
+        result["total_tweets"] += 1
+        if (language in result["languages"]):
+          result["languages"][language] += 1
+        else:
+          result["languages"][language] = 1
+        result[ "number_of_languages"] = len(result["languages"])
 
   final_result = []
 
@@ -110,13 +138,26 @@ def getResult(tinyTwitter):
 
   return final_result
 
-          
-start_time = time.time()
-results = getResult(tinyTwitter)
-end_time = time.time()
-print("total running time is: ", (end_time - start_time))
-def print_result():
-  print('cell', '#Total Tweets', '#Number of Languages Used')
-  for result in results:
-    print(result['cell'],'\t', result['total_tweets'], '\t\t', result['number_of_languages'] ,'\t', result['languages'])
-print_result()
+
+# if comm_rank == 0 and comm_size < 2:
+#   start_time = time.time()
+#   results = getResult(f_list)
+#   end_time = time.time()
+#   print("total running time is: ", (end_time - start_time))
+#   def print_result():
+#     print('cell', '#Total Tweets', '#Number of Languages Used')
+#     for result in results:
+#       print(result['cell'],'\t', result['total_tweets'], '\t\t', result['number_of_languages'] ,'\t', result['languages'])
+#   print_result()
+if comm_rank == 0 and comm_size < 2:
+  start_time = time.time()
+  loadFile()
+  results = getResult()
+  end_time = time.time()
+  print("total running time is: ", (end_time - start_time))
+  def print_result():
+    print('cell', '#Total Tweets', '#Number of Languages Used')
+    for result in results:
+      print(result['cell'],'\t', result['total_tweets'], '\t\t', result['number_of_languages'] ,'\t', result['languages'])
+  print_result()
+
