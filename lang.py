@@ -80,7 +80,7 @@ languages = [
     ('iu', 'Inuktitut'),
     ('ie', 'Interlingue; Occidental'),
     ('ia', 'Interlingua (International Auxiliary Language Association)'),
-    ('id', 'Indonesian'),
+    ('in', 'Indonesian'),
     ('ik', 'Inupiaq'),
     ('is', 'Icelandic'),
     ('it', 'Italian'),

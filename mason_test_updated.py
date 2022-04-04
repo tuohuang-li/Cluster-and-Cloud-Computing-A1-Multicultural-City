@@ -13,7 +13,7 @@ def chunkTwitter(flist, x):
   :return: sliced list for parallel
   """
   list = []
-  for i in range(4): #0, 1, 2, 3
+  for i in range(8): #0, 1, 2, 3 .. 8 cores
     list.append(flist[i::x]) # start from i, every xth element
   return list
    
@@ -46,12 +46,12 @@ def loadFile(file):
           if (row["doc"]["coordinates"] is not None):
             f_list.append({"coordinates": row["doc"]["coordinates"]["coordinates"], "lang": row["doc"]["lang"]})
         else:
-          row = json.loads(item.strip()[:-2])
+          row = json.loads(item.strip()[:-2])  #last row contains special charas cannot be parsed by JSON??
           #print(row)
           if (row["doc"]["coordinates"] is not None):
             #print(row)
             f_list.append({"coordinates": row["doc"]["coordinates"]["coordinates"], "lang": row["doc"]["lang"]})
-
+    f.close()
     #print(total_row)
     return f_list, total_row
 
