@@ -5,23 +5,6 @@ from lang import languages
 
 #from mpi4py import MPI
 
-def chunkTwitter(flist, x):
-  """
-
-  :param flist: A list of dictionary read from twitter file
-  :param x: slices end before index x
-  :return: sliced list for parallel
-  """
-  list = []
-  for i in range(8): #0, 1, 2, 3 .. 8 cores
-    list.append(flist[i::x]) # start from i, every xth element
-  return list
-   
-#comm = MPI.COMM_WORLD
-#comm_rank = comm.Get_rank()
-#comm_size = comm.Get_size()
-
-
 def loadFile(file):
   """
 
@@ -99,6 +82,7 @@ def getAreaCode(x, y, logi, lati):
     if(y <= lati[i] and y > lati[i + 1]):
       area["latiCode"] = latiCode[i]
       break
+  print(area['latiCode'] + area['logiCode'])
   return area['latiCode'] + area['logiCode']
 
 
@@ -113,9 +97,29 @@ def get_languages(lan):
 Gathering results, get final results
 situation 1: no need to merge
 """
-
-def calculate_results():
+def sort_results():
   pass
+
+def calculate_results(dataDict):
+  results = {}
+  for row in dataDict: #f_list:
+    coordinates = row["coordinates"]
+    area_code = getAreaCode(coordinates[0], coordinates[1], logi, lati)  #find twitter location
+    if area_code is None:
+      continue
+    else:
+      #counter = 0
+      result_row = {}
+      result_row["cell"] = area_code
+      if "total_tweets" in result_row: #check if key in dict already
+        result_row["total_tweets"] += 1
+      else:
+          result_row["total_tweets"] = 1
+      language = get_languages(row["lang"])
+
+      results.update(result_row)
+
+
 
 """
 situation 2: merge results required
@@ -147,6 +151,7 @@ def getResult(twitter_file):
         else:
           result["languages"][language] = 1
         result[ "number_of_languages"] = len(result["languages"])
+
 
   final_result = []
 
@@ -180,15 +185,38 @@ def getResult(twitter_file):
 #     for result in results:
 #       print(result['cell'],'\t', result['total_tweets'], '\t\t', result['number_of_languages'] ,'\t', result['languages'])
 #   print_result()
-#if comm_rank == 0 and comm_size < 2:
+
 def print_result():
   print('cell', '#Total Tweets', '#Number of Languages Used')
   for result in results:
     print(result['cell'],'\t', result['total_tweets'], '\t\t', result['number_of_languages'] ,'\t', result['languages'])
 
+"""
+function handling parallel process
+"""
+def chunkify(flist, x):
+  """
+
+  :param flist: A list of dictionary read from twitter file
+  :param x: slices end before index x
+  :return: sliced list for parallel
+  """
+  list = []
+  for i in range(8): #0, 1, 2, 3 .. 8 cores
+    list.append(flist[i::x]) # start from i, every xth element
+  return list
+
+def
+
 
 if __name__ == "__main__":
   start_time1 = time.time()
+
+  #invoke MPI process
+  # comm = MPI.COMM_WORLD
+  # size = comm.Get_size()
+  # rank = comm.Get_rank()
+
   sydGrid = loadFileGrid('sydGrid.json')
   logi, lati = getGeoCodeSets(sydGrid)
   file = 'smallTwitter.json'
@@ -197,8 +225,19 @@ if __name__ == "__main__":
   print("total loading time is: ", (end_time1 - start_time1))
 
   start_time2 = time.time()
+  #1 node 1 core
+  #if rank == 0 and size < 2:
   results = getResult(twitts)
   print_result()
+  #elif rank == 0:
+    #x = size
+    #
+    #results = getResult(twitts)
+    #print_result()
+  #else:
+    #
+
+
   end_time2 = time.time()
   print("total running time is: ", (end_time2 - start_time2))
 
