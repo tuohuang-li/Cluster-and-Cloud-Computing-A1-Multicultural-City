@@ -3,7 +3,7 @@ import re
 import time
 from lang import languages
 #from mpi4py import MPI
-
+import mmap
 def chunkTwitter(flist, x):
   """
 
@@ -33,32 +33,35 @@ def loadFile(file):
   #file = 'tinyTwitter.json'
   with open(file, 'r', encoding="utf8") as f:
 
-    for item in f:
+    mm = mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ)
 
-      if (item.endswith(':[\n')):
+    for item in iter(mm.readline, b""):
+
+      if (item.decode("utf-8").endswith(':[\r\n')):
         #print(item)
-        total_row = re.findall(r'-?\d+\.?\d*', item)[0]
+        total_row = re.findall(r'-?\d+\.?\d*', item.decode("utf-8"))[0]
 
       else:
-        if(item.endswith('}},\n')):
-          item = item[:-2]
+        if(item.decode("utf-8").endswith('}},\r\n')):
+          item = item.decode("utf-8")[:-2]
 
-        elif(item.endswith('}}\n')):
-          item = item[:-1]
+        elif(item.decode("utf-8").endswith('}}\r\n')):
+          item = item.decode("utf-8")[:-1]
 
-        elif(item.endswith('}}]}\n')): #last row
-          item = item[:-3]
+        elif(item.decode("utf-8").endswith('}}]}\r\n')): #last row
+          item = item.decode("utf-8")[:-3]
           #print(item)
         row = json.loads(item)
-
-        if (row["doc"]["coordinates"] != None):
+        if (row["doc"]["coordinates"] is not None):
             # row["doc"]["coordinates"]["coordinates"]
             # row["doc"]["lang"]
+
           f_list.append({"coordinates": row["doc"]["coordinates"]["coordinates"], "lang": row["doc"]["lang"] })
           #print({"coordinates": row["doc"]["coordinates"]["coordinates"], "lang": row["doc"]["lang"] })
 
     print(total_row)
     return f_list, total_row
+
 
 def loadFileGrid(file):
     with open(file, 'r', encoding="utf8") as f:
