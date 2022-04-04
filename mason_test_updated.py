@@ -31,34 +31,28 @@ def loadFile(file):
   """
   f_list = []
   total_row = 0
-  #file = 'tinyTwitter.json'
+  # file = 'tinyTwitter.json'
   with open(file, 'r', encoding="utf8") as f:
 
     for item in f:
 
       if (item.endswith(':[\n')):
-        #print(item)
+        # print(item)
         total_row = re.findall(r'-?\d+\.?\d*', item)[0]
 
       else:
-        if(item.endswith('}},\n')):
-          item = item[:-2]
+        if (item.strip()[-1] == ','):
+          row = json.loads(item.strip()[:-1])
+          if (row["doc"]["coordinates"] is not None):
+            f_list.append({"coordinates": row["doc"]["coordinates"]["coordinates"], "lang": row["doc"]["lang"]})
+        else:
+          row = json.loads(item.strip()[:-2])
+          #print(row)
+          if (row["doc"]["coordinates"] is not None):
+            #print(row)
+            f_list.append({"coordinates": row["doc"]["coordinates"]["coordinates"], "lang": row["doc"]["lang"]})
 
-        elif(item.endswith('}}\n')):
-          item = item[:-1]
-
-        elif(item.endswith('}}]}\n')): #last row
-          item = item[:-3]
-          #print(item)
-        row = json.loads(item)
-
-        if (row["doc"]["coordinates"] != None):
-            # row["doc"]["coordinates"]["coordinates"]
-            # row["doc"]["lang"]
-          f_list.append({"coordinates": row["doc"]["coordinates"]["coordinates"], "lang": row["doc"]["lang"] })
-          #print({"coordinates": row["doc"]["coordinates"]["coordinates"], "lang": row["doc"]["lang"] })
-
-    print(total_row)
+    #print(total_row)
     return f_list, total_row
 
 def loadFileGrid(file):
