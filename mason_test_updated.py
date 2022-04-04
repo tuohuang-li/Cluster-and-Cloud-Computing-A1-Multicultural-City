@@ -36,21 +36,26 @@ def loadFile(file):
 
     for item in f:
 
-      if (item.endswith(':[\n')):
-        # print(item)
-        total_row = re.findall(r'-?\d+\.?\d*', item)[0]
+      try:
+        i = 0
+        if (item.endswith(':[\n')):
+          # print(item)
+          total_row = re.findall(r'-?\d+\.?\d*', item)[0]
 
-      else:
-        if (item.strip()[-1] == ','):
-          row = json.loads(item.strip()[:-1])
-          if (row["doc"]["coordinates"] is not None):
-            f_list.append({"coordinates": row["doc"]["coordinates"]["coordinates"], "lang": row["doc"]["lang"]})
         else:
-          row = json.loads(item.strip()[:-2])  #last row contains special charas cannot be parsed by JSON??
-          #print(row)
-          if (row["doc"]["coordinates"] is not None):
+          if (item.strip()[-1] == ','):
+            row = json.loads(item.strip()[:-1])
+            if (row["doc"]["coordinates"] is not None):
+              f_list.append({"coordinates": row["doc"]["coordinates"]["coordinates"], "lang": row["doc"]["lang"]})
+          else:
+            row = json.loads(item.strip()[:-2])  #last row contains special charas cannot be parsed by JSON??
             #print(row)
-            f_list.append({"coordinates": row["doc"]["coordinates"]["coordinates"], "lang": row["doc"]["lang"]})
+            if (row["doc"]["coordinates"] is not None):
+              #print(row)
+              f_list.append({"coordinates": row["doc"]["coordinates"]["coordinates"], "lang": row["doc"]["lang"]})
+          i += 1
+      except:
+        print(f"Line %d has been discarded as it cannot be convert into json."%(i))
     f.close()
     #print(total_row)
     return f_list, total_row
@@ -103,6 +108,21 @@ def get_languages(lan):
       return i[1]
   
   return 'Unknown'
+
+"""
+Gathering results, get final results
+situation 1: no need to merge
+"""
+
+def calculate_results():
+  pass
+
+"""
+situation 2: merge results required
+"""
+def merge_results():
+  pass
+
 
 # Generate an empty results array to store manipulated data
 def generate_results_array():
@@ -171,7 +191,7 @@ if __name__ == "__main__":
   start_time1 = time.time()
   sydGrid = loadFileGrid('sydGrid.json')
   logi, lati = getGeoCodeSets(sydGrid)
-  file = 'tinyTwitter.json'
+  file = 'smallTwitter.json'
   twitts, total_row = loadFile(file)
   end_time1 = time.time()
   print("total loading time is: ", (end_time1 - start_time1))
