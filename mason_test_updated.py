@@ -2,6 +2,7 @@ import json
 import re
 import time
 from lang import languages
+
 #from mpi4py import MPI
 
 def chunkTwitter(flist, x):
