@@ -2,6 +2,7 @@ from mpi4py import MPI
 import math
 import re
 import json
+from lang import languages
 comm = MPI.COMM_WORLD
 comm_rank = comm.Get_rank()
 comm_size = comm.Get_size()
@@ -23,7 +24,7 @@ def read_line(line):
 
 def loadData(x):
   total_row = 0
-  with open("smallTwitter.json", 'rb') as f:
+  with open("bigTwitter.json", 'rb') as f:
     i = 0
     for item in f:
       if(i != 0):
@@ -59,9 +60,12 @@ def getGeoCodeSets(grid):
   lati_set = sorted(set(lati), reverse=True)
   return logi_set, lati_set
 
-#logi, lati = getGeoCodeSets(sydGrid)
+sydGrid = loadFileGrid('sydGrid.json')
+logi, lati = getGeoCodeSets(sydGrid)
 logiCode=['1', '2', '3', '4']
 latiCode = ['A', 'B', 'C', 'D']
+
+
 
 def getAreaCode(x, y, logi, lati):
   area = {"logiCode": '', "latiCode": ''}
@@ -111,8 +115,7 @@ def getResult(twitter_file):
         else:
           result["languages"][language] = 1
         result[ "number_of_languages"] = len(result["languages"])
-        final_result = []
-
+  final_result = []
   for result in results:
     if(result["total_tweets"] != 0):
       newDic = dict(sorted(result["languages"].items(), key=lambda item: item[1], reverse=True)[:10])
@@ -121,21 +124,16 @@ def getResult(twitter_file):
 
   return final_result
 
-def print_result():
+def print_result(results):
   print('cell', '#Total Tweets', '#Number of Languages Used')
   for result in results:
     print(result['cell'],'\t', result['total_tweets'], '\t\t', result['number_of_languages'] ,'\t', result['languages'])
 
-def getResults():
-  if (comm_rank == 0):
-    all_data = []
-    gathered = comm.gather(data, root = 0)
-    for item in gathered:
-      for da in item:
-        all_data.append(da)
-    sydGrid = loadFileGrid('sydGrid.json')
-    logi, lati = getGeoCodeSets(sydGrid)
-    results = getResult(all_data)
-    print_result()
 
-getResults()
+all_data = []
+gathered = comm.gather(data, root = 0)
+if(gathered is not None):
+  for item in gathered:
+    for da in item:
+      all_data.append(da)
+  print_result(getResult(all_data))
