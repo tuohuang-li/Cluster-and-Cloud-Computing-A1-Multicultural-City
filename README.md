@@ -24,7 +24,7 @@ To locate the tweets, only tweets including geo-coordinates will be extracted. A
 “sydGrids.json” provides the grid data which divides the whole Sydney range into 16 identical
 squares.
 
-![alt text](https://github.com/[username]/[reponame]/blob/[branch]/image.jpg?raw=true)
+![alt text](https://github.com/tuohuang-li/COMP90024_A1/blob/master/sydGrid.jpg?raw=true)
 (Picture 1 - sydGrid)
 
 #How to run
