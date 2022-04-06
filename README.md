@@ -25,6 +25,7 @@ To locate the tweets, only tweets including geo-coordinates will be extracted. A
 squares.
 
 ![alt text](https://github.com/tuohuang-li/COMP90024_A1/blob/master/sydGrid.jpg?raw=true)
+
 (Picture 1 - sydGrid)
 
 #How to run
