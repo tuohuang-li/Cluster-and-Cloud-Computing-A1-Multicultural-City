@@ -1,4 +1,8 @@
-# Cluster and Cloud Computing Assignment 1 – Multicultural City
+# **Multicultural City**
+***
+COMP90024 Cluster and Cloud Computing Assignment 1
+
+
 Your task in this programming assignment is to implement a simple, parallelized application leveraging the University
 of Melbourne HPC facility SPARTAN. Your application will use a large Twitter dataset and a grid/mesh for Sydney
 to identify the languages used in making Tweets. Your objective is to count the number of different languages used for
